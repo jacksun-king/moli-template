@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .tmp*
+bin/
+data/*.log
+data/cloudflare_url.txt
