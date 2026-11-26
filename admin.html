@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>管理后台 · 模力盒</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/extra.css"></head>
+<body>
+<header class="site-header"><div class="wrap header-inner">
+  <a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a>
+  <nav class="main-nav"><a href="index.html">前台首页</a><a href="account.html">个人中心</a></nav>
+  <div class="header-actions"><span class="admin-badge">管理员模式</span><button class="btn btn-ghost btn-sm" id="logoutBtn" type="button">退出登录</button></div>
+</div></header>
+<main class="wrap admin-wrap">
+  <div class="admin-title"><div><span class="kicker">ADMIN CONSOLE</span><h1>管理后台</h1><p>审核模板、处理上下架申请、管理分类、用户与文件</p></div></div>
+  <div class="admin-tabs" id="adminTabs">
+    <button class="is-active" data-tab="overview" type="button">概览</button>
+    <button data-tab="review" type="button">模板审核 <b id="pendingBadge">0</b></button>
+    <button data-tab="requests" type="button">上下架申请 <b id="requestBadge">0</b></button>
+    <button data-tab="templates" type="button">模板管理</button>
+    <button data-tab="categories" type="button">分类管理</button>
+    <button data-tab="users" type="button">用户管理</button>
+    <button data-tab="files" type="button">文件管理</button>
+    <button data-tab="crawl" type="button">资源采集 ✦</button>
+  </div>
+
+  <section class="admin-panel" id="tab-overview">
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="panel"><h2>快速上手</h2><p class="muted-text">① 在「模板审核」通过或拒绝用户上传；② 在「上下架申请」处理用户提交的上架/下架理由；③ 已上架模板需先下架才能删除；④ 在「分类管理」维护分类，删除分类时模板自动归入「其他模板」。</p></div>
+  </section>
+
+  <section class="admin-panel" id="tab-review" hidden>
+    <div class="panel"><div class="panel-head"><h2>待审核模板</h2><button class="btn btn-ghost btn-sm" data-load="review" type="button">刷新</button></div><div id="reviewList"></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-requests" hidden>
+    <div class="panel"><div class="panel-head"><h2>上下架申请</h2><button class="btn btn-ghost btn-sm" data-load="requests" type="button">刷新</button></div><p class="muted-text">用户只能对自己的模板提出申请，并需填写理由；同意后模板状态即时变更。</p><div id="reqList"></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-templates" hidden>
+    <div class="panel"><div class="panel-head"><h2>全部模板</h2><div class="tool-row"><input id="tplSearch" class="search-input" type="search" placeholder="搜索名称 / 分类 / 上传者"><select id="tplStatus"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已上架</option><option value="unlisted">已下架</option><option value="rejected">未通过</option></select><button class="btn btn-ghost btn-sm" data-load="templates" type="button">刷新</button></div></div><div id="tplList"></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-categories" hidden>
+    <div class="panel"><div class="panel-head"><h2>分类管理</h2><div class="tool-row"><input id="catSearch" class="search-input" type="search" placeholder="搜索分类名称 / 场景"><button class="btn btn-primary btn-sm" id="addCatBtn" type="button">+ 新增分类</button></div></div><p class="muted-text">删除分类时，该分类下的模板会自动归入系统分类「其他模板」；系统分类不可删除。</p><div id="catList"></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-users" hidden>
+    <div class="panel"><div class="panel-head"><h2>用户管理</h2><button class="btn btn-ghost btn-sm" data-load="users" type="button">刷新</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>用户名</th><th>邮箱</th><th>角色</th><th>上传数</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userRows"></tbody></table></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-files" hidden>
+    <div class="panel"><div class="panel-head"><h2>文件管理</h2><button class="btn btn-ghost btn-sm" data-load="files" type="button">刷新</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>文件名</th><th>大小</th><th>类型</th><th>上传者</th><th>时间</th><th>操作</th></tr></thead><tbody id="fileRows"></tbody></table></div></div>
+  </section>
+
+  <section class="admin-panel" id="tab-crawl" hidden>
+    <div class="panel">
+      <div class="panel-head"><h2>免费模板采集引擎</h2><button class="btn btn-ghost btn-sm" id="crawlRefresh" type="button">刷新状态</button></div>
+      <p class="muted-text">从国内外公开免费模板站采集<strong>标题、封面和跳转链接</strong>并直接上架；本站不下载、不托管模板文件，版权归原作者所有。每个来源每次采集数量可配置，重复链接自动去重。</p>
+      <div class="crawl-form">
+        <label>每个来源采集数量 <input type="number" id="crawlLimit" value="12" min="1" max="40"></label>
+        <button class="btn btn-primary" id="crawlBtn" type="button">✦ 立即采集</button>
+        <span class="crawl-total">已索引外链模板：<b id="crawlTotal">0</b></span>
+      </div>
+      <div id="crawlResult" class="crawl-result" hidden></div>
+      <h3 class="sub-title">数据源</h3><div id="sourceList"></div>
+      <h3 class="sub-title">采集记录</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>时间</th><th>来源</th><th>发现</th><th>新增</th><th>结果</th></tr></thead><tbody id="crawlLogs"></tbody></table></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="js/common.js"></script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const statusText={pending:'待审核',approved:'已上架',unlisted:'已下架',rejected:'未通过'};
+let cats=[], allTemplates=[];
+
+async function loadAll(){
+  const [stats,categories,templates]=await Promise.all([
+    api('/api/templates/stats'),api('/api/categories'),api('/api/templates?all=1')
+  ]);
+  cats=categories.categories;
+  $('#statGrid').innerHTML=[
+    ['注册用户',stats.users||0],['模板总数',stats.templates||0],['待审核',stats.pending||0],
+    ['已下架',stats.unlisted||0],['待处理申请',stats.requests||0],
+    ['文件数',stats.files||0],['累计下载',stats.downloads||0]
+  ].map(([k,v])=>`<div class="stat-box"><strong>${v}</strong><span>${k}</span></div>`).join('');
+  $('#pendingBadge').textContent=stats.pending||0;
+  const dot=stats.pending?'<i class="dot-badge"></i>':'';
+  $('#adminTabs').querySelector('[data-tab=review]').innerHTML='模板审核 <b id="pendingBadge">'+stats.pending+'</b>'+dot;
+  renderReview(templates.templates);
+  renderTemplates(templates.templates);
+  renderCats(cats);
+  await Promise.all([loadRequests(),loadUsers(),loadFiles()]);
+}
+function adminRow(t){
+  const thumb=miniHTML(t).replace('class="thumb"','class="thumb admin-thumb"');
+  let acts='';
+  if(t.status==='pending') acts=`<button class="btn btn-primary btn-sm" data-approve="${t.id}" type="button">通过</button><button class="btn btn-ghost btn-sm" data-reject="${t.id}" type="button">拒绝</button>`;
+  else if(t.status==='approved') acts=`<button class="btn btn-ghost btn-sm" data-status="unlisted" data-id="${t.id}" type="button">下架</button>`;
+  else acts=`<button class="btn btn-ghost btn-sm" data-status="approved" data-id="${t.id}" type="button">上架</button>`;
+  acts+=`<button class="btn btn-danger btn-sm" data-del-tpl="${t.id}" type="button" ${t.status==='approved'?'disabled title="请先下架再删除"':''}>删除</button>`;
+  const src=t.source==='crawled'?`<span class="tpl-source"> · ${esc(t.source_site||'外链')}</span>`:'';
+  return `<div class="admin-item">${thumb}<div class="admin-item-main"><strong>${esc(t.title)}</strong><small>${esc(t.cat_name)} · ${esc(t.sub)} · 上传者：${esc(t.uploader_name)} · ${fmtDate(t.created_at)}${src}</small><p>${esc(t.description)}</p></div>
+    <div class="admin-item-actions">${t.status!=='pending'?`<span class="status ${t.status}">${statusText[t.status]||t.status}</span>`:''}${acts}</div></div>`;
+}
+function renderReview(list){
+  const pending=list.filter(t=>t.status==='pending');
+  $('#reviewList').innerHTML=pending.length?pending.map(adminRow).join(''):'<p class="muted-text">暂无待审核模板 🎉</p>';
+  bindTplActions();
+}
+function renderTemplates(list){
+  allTemplates=list;
+  const kw=($('#tplSearch').value||'').trim().toLowerCase(), st=$('#tplStatus').value;
+  const arr=list.filter(t=>(!st||t.status===st) && (!kw || [t.title,t.cat_name,t.sub,t.description,t.uploader_name].some(v=>String(v||'').toLowerCase().includes(kw))));
+  $('#tplList').innerHTML=arr.length?arr.map(adminRow).join(''):'<p class="muted-text">没有匹配的模板</p>';
+  bindTplActions();
+}
+function bindTplActions(){
+  $$('[data-approve]').forEach(b=>b.onclick=async()=>{try{await api('/api/templates/'+b.dataset.approve,{method:'PATCH',body:{status:'approved'}});toast('已通过审核');loadAll();}catch(e){toast(e.message);}});
+  $$('[data-reject]').forEach(b=>b.onclick=async()=>{try{await api('/api/templates/'+b.dataset.reject,{method:'PATCH',body:{status:'rejected'}});toast('已拒绝');loadAll();}catch(e){toast(e.message);}});
+  $$('[data-status]').forEach(b=>b.onclick=async()=>{const label=b.dataset.status==='approved'?'上架':'下架';try{await api('/api/templates/'+b.dataset.id,{method:'PATCH',body:{status:b.dataset.status}});toast('已'+label);loadAll();}catch(e){toast(e.message);}});
+  $$('[data-del-tpl]').forEach(b=>b.onclick=async()=>{if(b.disabled)return;if(!confirm('确定删除该模板？删除后不可恢复。'))return;try{await api('/api/templates/'+b.dataset.delTpl,{method:'DELETE'});toast('已删除');loadAll();}catch(e){toast(e.message);}});
+}
+function catRow(c){
+  const sys=!!c.is_system;
+  return `<div class="cat-row"><span class="cat-icon">${c.icon}</span><div><strong>${esc(c.name)} ${sys?'<span class="cat-sys">系统分类</span>':''}</strong><small>${esc(c.description)} · 场景：${c.subs.map(esc).join('、')}</small></div>
+    <div class="row-actions"><button class="btn btn-ghost btn-sm" data-edit-cat="${c.id}" type="button">编辑</button>${sys?'<button class="btn btn-danger btn-sm" disabled title="系统默认分类不可删除">删除</button>':`<button class="btn btn-danger btn-sm" data-del-cat="${c.id}" type="button">删除</button>`}</div></div>`;
+}
+function renderCats(list){
+  const kw=($('#catSearch').value||'').trim().toLowerCase();
+  const arr=list.filter(c=>!kw || [c.name,c.description,(c.subs||[]).join(' ')].some(v=>String(v||'').toLowerCase().includes(kw)));
+  $('#catList').innerHTML=arr.length?arr.map(catRow).join(''):'<p class="muted-text">没有匹配的分类</p>';
+  $$('[data-edit-cat]').forEach(b=>b.onclick=()=>{const c=cats.find(x=>x.id==b.dataset.editCat);catForm(c);});
+  $$('[data-del-cat]').forEach(b=>b.onclick=async()=>{if(!confirm('确定删除该分类？分类下的模板会自动归入「其他模板」。'))return;try{const r=await api('/api/categories/'+b.dataset.delCat,{method:'DELETE'});toast(r.message||'已删除');loadAll();}catch(e){toast(e.message);}});
+}
+async function loadCats(){cats=(await api('/api/categories')).categories;renderCats(cats);}
+function catForm(c){
+  const name=prompt('分类名称',c?.name||'');if(!name)return;
+  const icon=prompt('图标（emoji）',c?.icon||'📁')||'📁';
+  const desc=prompt('分类描述',c?.description||'')||'';
+  const subs=prompt('场景（逗号分隔）',(c?.subs||[]).join(','))||'';
+  const body={name,icon,description:desc,subs:subs.split(/[,，]/).map(s=>s.trim()).filter(Boolean)};
+  api(c?'/api/categories/'+c.id:'/api/categories',{method:c?'PATCH':'POST',body}).then(()=>{toast(c?'已更新':'已新增');loadAll();}).catch(e=>toast(e.message));
+}
+async function loadRequests(){
+  const {requests}=await api('/api/requests');
+  $('#requestBadge').textContent=requests.filter(r=>r.status==='pending').length;
+  $('#reqList').innerHTML=requests.length?requests.map(r=>`<div class="admin-item req-item">
+    <div class="admin-item-main"><strong>${r.action==='list'?'申请上架':'申请下架'} · ${esc(r.template_title)}</strong>
+    <small>申请人：${esc(r.username)} · ${fmtDate(r.created_at)} · 模板当前状态：${statusText[r.tpl_status]||r.tpl_status}</small>
+    <p>申请理由：${esc(r.reason)}</p>${r.handle_note?`<p class="muted-text">处理备注：${esc(r.handle_note)}</p>`:''}</div>
+    <div class="admin-item-actions">${r.status==='pending'?`<button class="btn btn-primary btn-sm" data-req="${r.id}" data-decision="approve" type="button">同意</button><button class="btn btn-ghost btn-sm" data-req="${r.id}" data-decision="reject" type="button">拒绝</button>`:`<span class="status ${r.status==='approved'?'approved':'rejected'}">${r.status==='approved'?'已同意':'已拒绝'}</span>`}</div>
+  </div>`).join(''):'<p class="muted-text">暂无上下架申请</p>';
+  $$('[data-req]').forEach(b=>b.onclick=async()=>{
+    const note=b.dataset.decision==='reject'?(prompt('拒绝理由（可选）','')||''):'';
+    try{await api('/api/requests/'+b.dataset.req,{method:'PATCH',body:{decision:b.dataset.decision,note}});toast('已处理');loadAll();}catch(e){toast(e.message);}
+  });
+}
+async function loadUsers(){
+  const {users}=await api('/api/users');
+  $('#userRows').innerHTML=users.map(u=>`<tr><td>${u.id}</td><td>${avatarHTML(u.username)} ${esc(u.username)}</td><td>${esc(u.email)}</td><td><span class="role ${u.role}">${u.role==='admin'?'管理员':'用户'}</span></td><td>${u.uploads}</td><td>${fmtDate(u.created_at)}</td><td class="ops"><button class="btn btn-ghost btn-sm" data-role="${u.id}" data-to="${u.role==='admin'?'user':'admin'}" type="button">${u.role==='admin'?'取消管理员':'设为管理员'}</button><button class="btn btn-danger btn-sm" data-del-user="${u.id}" type="button">删除</button></td></tr>`).join('');
+  $$('[data-role]').forEach(b=>b.onclick=async()=>{try{await api('/api/users/'+b.dataset.role,{method:'PATCH',body:{role:b.dataset.to}});toast('角色已更新');loadUsers();}catch(e){toast(e.message);}});
+  $$('[data-del-user]').forEach(b=>b.onclick=async()=>{if(!confirm('⚠️ 删除用户会同时删除该用户的模板与文件，不可恢复。确定吗？'))return;try{await api('/api/users/'+b.dataset.delUser,{method:'DELETE'});toast('用户已删除');loadAll();}catch(e){toast(e.message);}});
+}
+async function loadFiles(){
+  const {files}=await api('/api/files');
+  $('#fileRows').innerHTML=files.length?files.map(f=>`<tr><td>${f.id}</td><td>${esc(f.original_name)}</td><td>${fmtSize(f.size)}</td><td>${esc(f.mime)}</td><td>${esc(f.uploader)}</td><td>${fmtDate(f.created_at)}</td><td><button class="btn btn-danger btn-sm" data-del-file="${f.id}" type="button">删除</button></td></tr>`).join(''):'<tr><td colspan="7" class="muted-text">暂无文件</td></tr>';
+  $$('[data-del-file]').forEach(b=>b.onclick=async()=>{if(!confirm('⚠️ 删除文件后，关联模板会下架且无法下载。确定吗？'))return;try{await api('/api/files/'+b.dataset.delFile,{method:'DELETE'});toast('文件已删除');loadAll();}catch(e){toast(e.message);}});
+}
+$$('#adminTabs button').forEach(b=>b.onclick=()=>{
+  $$('#adminTabs button').forEach(x=>x.classList.toggle('is-active',x===b));
+  $$('.admin-panel').forEach(x=>x.hidden=x.id!=='tab-'+b.dataset.tab);
+  if(b.dataset.tab==='review')loadReviewOnly();
+  if(b.dataset.tab==='templates')renderTemplates(allTemplates);
+  if(b.dataset.tab==='categories')renderCats(cats);
+  if(b.dataset.tab==='requests')loadRequests();
+  if(b.dataset.tab==='crawl')loadCrawl();
+});
+async function loadReviewOnly(){const {templates}=await api('/api/templates?all=1');renderReview(templates);}
+$('#tplStatus').addEventListener('change',()=>renderTemplates(allTemplates));
+$('#tplSearch').addEventListener('input',()=>renderTemplates(allTemplates));
+$('#catSearch').addEventListener('input',()=>renderCats(cats));
+$('#addCatBtn').onclick=()=>catForm(null);
+$$('[data-load]').forEach(b=>b.onclick=loadAll);
+async function loadCrawl(){
+  const s=await api('/api/crawl/status');
+  $('#crawlTotal').textContent=s.total;
+  $('#sourceList').innerHTML=s.sources.map(x=>`<div class="source-row"><span class="source-icon">🌐</span><div><strong>${esc(x.name)}</strong><small>${esc(x.note)} · ${esc(x.url)}</small></div><span class="status approved">启用</span></div>`).join('');
+  $('#crawlLogs').innerHTML=s.logs.length?s.logs.map(l=>`<tr><td>${fmtDate(l.started_at)}</td><td>${esc(l.source_name||l.source)}</td><td>${l.found}</td><td>${l.added}</td><td>${l.error?`<span class="status rejected">${esc(l.error)}</span>`:'<span class="status approved">成功</span>'}</td></tr>`).join(''):'<tr><td colspan="5" class="muted-text">暂无采集记录</td></tr>';
+}
+$('#crawlRefresh').onclick=loadCrawl;
+$('#crawlBtn').onclick=async()=>{
+  const b=$('#crawlBtn');b.disabled=true;b.textContent='采集中，请稍候…';$('#crawlResult').hidden=true;
+  try{
+    const r=await api('/api/crawl',{method:'POST',body:{limit:Number($('#crawlLimit').value)||12}});
+    $('#crawlResult').hidden=false;
+    $('#crawlResult').innerHTML='<strong>采集完成，新增 '+r.total+' 套外链模板</strong>'+r.results.map(x=>`<div class="crawl-line">${esc(x.source)} — 发现 ${x.found}，新增 ${x.added}${x.error?' <span class="status rejected">'+esc(x.error)+'</span>':''}</div>`).join('');
+    toast('采集完成，新增 '+r.total+' 套');loadAll();loadCrawl();
+  }catch(e){toast(e.message);}
+  finally{b.disabled=false;b.textContent='✦ 立即采集';}
+};
+$('#logoutBtn').onclick=async()=>{await api('/api/logout',{method:'POST'});location.href='index.html';};
+(async()=>{const me=await loadMe();if(!me||me.role!=='admin'){location.href=me?'account.html':'auth.html?next=admin.html';return;}loadAll();loadCrawl();})();
+</script>
+</body></html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>登录 / 注册 · 模力盒</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/extra.css"></head>
+<body class="auth-body">
+<div class="auth-wrap">
+  <a class="brand auth-brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a>
+  <div class="auth-card">
+    <div class="auth-tabs"><button class="is-active" data-tab="login" type="button">登录</button><button data-tab="register" type="button">注册</button></div>
+    <div id="notice" class="auth-notice" hidden></div>
+    <form id="loginForm" class="auth-form">
+      <label>用户名或邮箱<input name="account" required autocomplete="username" placeholder="请输入用户名或邮箱"></label>
+      <label>密码<input name="password" type="password" required autocomplete="current-password" placeholder="至少 6 位"></label>
+      <button class="btn btn-primary" type="submit">登录</button>
+    </form>
+    <form id="registerForm" class="auth-form" hidden>
+      <label>用户名<input name="username" required minlength="2" maxlength="30" placeholder="2-30 个字符"></label>
+      <label>邮箱<input name="email" type="email" required placeholder="name@example.com"></label>
+      <label>密码<input name="password" type="password" required minlength="6" placeholder="至少 6 位"></label>
+      <p class="auth-hint">第一位注册的用户自动成为管理员，可进入后台审核模板、管理用户与文件。</p>
+      <button class="btn btn-primary" type="submit">注册并登录</button>
+    </form>
+    <p class="auth-foot"><a href="index.html">← 返回首页</a></p>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script>
+const $ = s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const params=new URLSearchParams(location.search);
+const next=params.get('next')||'index.html';
+$$('.auth-tabs button').forEach(b=>b.addEventListener('click',()=>{
+  $$('.auth-tabs button').forEach(x=>x.classList.toggle('is-active',x===b));
+  $('#loginForm').hidden=b.dataset.tab!=='login'; $('#registerForm').hidden=b.dataset.tab!=='register';
+  $('#notice').hidden=true;
+}));
+function notice(msg,ok){const n=$('#notice');n.hidden=false;n.textContent=msg;n.className='auth-notice '+(ok?'ok':'err');}
+async function submit(form,path,extra={}){
+  const btn=form.querySelector('button[type=submit]');btn.disabled=true;btn.textContent='请稍候…';
+  try{const d=await api(path,{method:'POST',body:extra.body||Object.fromEntries(new FormData(form))});
+    toast('登录成功'); location.href=next;
+  }catch(err){notice(err.message,false);}finally{btn.disabled=false;btn.textContent=form.id==='loginForm'?'登录':'注册并登录';}
+}
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();submit(e.target,'/api/login');});
+$('#registerForm').addEventListener('submit',e=>{e.preventDefault();
+  const f=e.target,btn=f.querySelector('button');btn.disabled=true;btn.textContent='请稍候…';
+  api('/api/register',{method:'POST',body:Object.fromEntries(new FormData(f))})
+    .then(d=>{notice(d.first_admin?'注册成功！你已成为管理员，可进入后台管理。':'注册成功！',true);setTimeout(()=>location.href=next,700);})
+    .catch(err=>notice(err.message,false)).finally(()=>{btn.disabled=false;btn.textContent='注册并登录';});
+});
+(async()=>{const me=await loadMe();if(me){location.href=next;}})();
+</script>
+</body></html>

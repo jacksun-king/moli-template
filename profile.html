@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>用户主页 · 模力盒</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/extra.css"></head>
+<body>
+<header class="site-header"><div class="wrap header-inner">
+  <a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a>
+  <div class="header-actions"><a class="btn btn-ghost btn-sm" href="index.html">返回首页</a></div>
+</div></header>
+<main class="wrap dash-wrap">
+  <div class="profile-card">
+    <div class="profile-avatar" id="pAvatar"></div>
+    <div><h1 id="pName">—</h1><p class="muted-text" id="pRole"></p><p class="muted-text" id="pDate"></p></div>
+  </div>
+  <div class="dash-grid profile-stats">
+    <div class="stat-box"><strong id="pUploads">0</strong><span>上传模板</span></div>
+    <div class="stat-box"><strong id="pApproved">0</strong><span>已上架</span></div>
+    <div class="stat-box"><strong id="pJoin">—</strong><span>加入时间</span></div>
+  </div>
+  <section class="panel"><h2>TA 已上架的模板</h2><div class="template-grid" id="pTemplates"></div><p class="muted-text" id="pEmpty" hidden>暂无已上架模板</p></section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="js/common.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+(async()=>{
+  const id=new URLSearchParams(location.search).get('id');
+  if(!id){location.href='index.html';return;}
+  await loadMe();
+  try{
+    const {user}=await api('/api/users/'+encodeURIComponent(id));
+    document.title=user.username+' · 模力盒';
+    $('#pAvatar').innerHTML=avatarHTML(user.username,'avatar-xl');
+    $('#pName').textContent=user.username;
+    $('#pRole').textContent=user.role==='admin'?'管理员':'普通用户';
+    $('#pDate').textContent='注册于 '+fmtDate(user.created_at);
+    $('#pUploads').textContent=user.upload_count;$('#pApproved').textContent=user.approved_count;
+    $('#pJoin').textContent=(user.created_at||'').slice(0,10);
+    const {templates}=await api('/api/templates');
+    const mine=templates.filter(t=>t.uploader_name===user.username);
+    $('#pTemplates').innerHTML=mine.map(t=>`<article class="tpl-card"><div class="tpl-thumb-wrap">${miniHTML(t)}</div><div class="tpl-body"><div class="tpl-cat">${esc(t.cat_name)} · ${esc(t.sub)}</div><h3>${esc(t.title)}</h3><p>${esc(t.description)}</p></div></article>`).join('');
+    $('#pEmpty').hidden=mine.length>0;
+  }catch(e){toast(e.message);}
+})();
+</script>
+</body></html>

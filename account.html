@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>个人中心 · 模力盒</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/extra.css"></head>
+<body>
+<header class="site-header"><div class="wrap header-inner">
+  <a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a>
+  <nav class="main-nav"><a href="index.html">首页</a><a href="index.html#library">模板库</a><a href="account.html">个人中心</a></nav>
+  <div class="header-actions"><a class="btn btn-ghost btn-sm" href="index.html">返回首页</a><button class="btn btn-primary btn-sm" id="logoutBtn" type="button">退出登录</button></div>
+</div></header>
+<main class="wrap dash-wrap">
+  <div class="dash-hero"><div class="dash-user" id="dashUser"></div><div class="dash-actions" id="dashActions"></div></div>
+  <div class="dash-grid">
+    <section class="panel">
+      <h2>我的资料</h2>
+      <div class="profile-row"><span>用户名</span><strong id="pfName">—</strong></div>
+      <div class="profile-row"><span>邮箱</span><strong id="pfEmail">—</strong></div>
+      <div class="profile-row"><span>角色</span><strong id="pfRole">—</strong></div>
+      <div class="profile-row"><span>注册时间</span><strong id="pfDate">—</strong></div>
+      <h3 class="sub-title">修改密码</h3>
+      <form id="pwForm" class="stack-form">
+        <label>原密码<input name="old" type="password" required></label>
+        <label>新密码（至少 6 位）<input name="new" type="password" required minlength="6"></label>
+        <button class="btn btn-primary btn-sm" type="submit">修改密码</button>
+      </form>
+      <h3 class="sub-title danger-title">注销账户</h3>
+      <p class="muted-text">注销后你的账号、上传记录与文件将被永久删除，无法恢复。</p>
+      <button class="btn btn-danger btn-sm" id="deleteMe" type="button">注销账户</button>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>我上传的模板</h2><a class="btn btn-primary btn-sm" href="index.html">上传新模板</a></div>
+      <p class="muted-text">已上架模板需先申请下架、管理员同意后才能删除；未通过或已下架的模板可申请上架，需填写理由。</p>
+      <div id="myList"></div>
+      <h3 class="sub-title">我的上下架申请</h3><div id="reqList"></div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="js/common.js"></script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const statusText={pending:'待审核',approved:'已上架',unlisted:'已下架',rejected:'未通过'};
+const reqStatusText={pending:'待处理',approved:'已同意',rejected:'已拒绝'};
+async function load(){
+  const me=await loadMe();
+  if(!me){location.href='auth.html?next=account.html';return;}
+  $('#dashUser').innerHTML=avatarHTML(me.username,'avatar-lg')+'<div><h1>'+esc(me.username)+'</h1><p>'+(me.role==='admin'?'管理员 · 拥有全部管理权限':'普通用户 · 可上传与下载模板')+'</p></div>';
+  $('#pfName').textContent=me.username;$('#pfEmail').textContent=me.email;
+  $('#pfRole').textContent=me.role==='admin'?'管理员':'普通用户';$('#pfDate').textContent=fmtDate(me.created_at);
+  $('#dashActions').innerHTML=(me.role==='admin'?'<a class="btn btn-primary btn-sm" href="admin.html">进入管理后台</a>':'')+'<a class="btn btn-ghost btn-sm" href="profile.html?id='+encodeURIComponent(me.username)+'">公开主页</a>';
+  const [{templates},{requests}]=await Promise.all([api('/api/templates?mine=1'),api('/api/requests/mine')]);
+  const latest={};
+  requests.forEach(r=>{if(!latest[r.template_id]) latest[r.template_id]=r;});
+  $('#myList').innerHTML=templates.length?templates.map(t=>{
+    const action=t.status==='approved'?'unlist':((t.status==='rejected'||t.status==='unlisted')?'list':'');
+    const r=latest[t.id];
+    const note=r?`<small class="req-note">${r.action==='list'?'上架':'下架'}申请（${reqStatusText[r.status]||r.status}）：${esc(r.reason)}</small>`:'';
+    return `<div class="my-item">
+      <div class="my-thumb">${miniHTML(t)}</div>
+      <div class="my-info"><strong>${esc(t.title)}</strong><small>${esc(t.cat_name)} · ${esc(t.sub)} · ${fmtDate(t.created_at)}</small>${note}</div>
+      <span class="status ${t.status}">${statusText[t.status]||t.status}</span>
+      ${action?`<button class="btn btn-ghost btn-sm" data-req="${t.id}" data-action="${action}" type="button">申请${action==='list'?'上架':'下架'}</button>`:''}
+      <button class="btn btn-danger btn-sm" data-del="${t.id}" type="button" ${t.status==='approved'?'disabled title="请先申请下架，管理员同意后再删除"':''}>删除</button>
+    </div>`;
+  }).join(''):'<p class="muted-text">还没有上传过模板。<a href="index.html">去上传 →</a></p>';
+  $$('[data-req]').forEach(b=>b.onclick=async()=>{
+    const label=b.dataset.action==='list'?'上架':'下架';
+    const reason=prompt('请填写申请'+label+'的理由（5-300 字）','');
+    if(reason===null)return;
+    try{await api('/api/requests',{method:'POST',body:{template_id:Number(b.dataset.req),action:b.dataset.action,reason:reason.trim()}});toast('申请已提交，等待管理员处理');load();}
+    catch(e){toast(e.message);}
+  });
+  $('#myList').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
+    if(b.disabled)return;
+    if(!confirm('确定删除这个模板？'))return;
+    try{await api('/api/templates/'+b.dataset.del,{method:'DELETE'});toast('已删除');load();}catch(e){toast(e.message);}
+  }));
+  $('#reqList').innerHTML=requests.length?requests.map(r=>`<div class="my-item req-line">
+    <div class="my-info"><strong>${r.action==='list'?'申请上架':'申请下架'} · ${esc(r.template_title)}</strong><small>理由：${esc(r.reason)} · ${fmtDate(r.created_at)}</small></div>
+    <span class="status ${r.status==='approved'?'approved':(r.status==='pending'?'pending':'rejected')}">${reqStatusText[r.status]||r.status}</span>
+  </div>`).join(''):'<p class="muted-text">暂无申请记录</p>';
+}
+$('#logoutBtn').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='index.html';});
+$('#pwForm').addEventListener('submit',async e=>{e.preventDefault();
+  try{await api('/api/me/password',{method:'POST',body:Object.fromEntries(new FormData(e.target))});toast('密码已修改');e.target.reset();}
+  catch(err){toast(err.message);}
+});
+$('#deleteMe').addEventListener('click',async()=>{
+  if(!confirm('⚠️ 注销账户将永久删除你的账号、模板和文件，且不可恢复。确定继续？'))return;
+  if(!confirm('请再次确认：真的要注销账户吗？'))return;
+  try{await api('/api/me',{method:'DELETE'});toast('账户已注销');location.href='index.html';}catch(e){toast(e.message);}
+});
+load();
+</script>
+</body></html>

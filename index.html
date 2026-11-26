@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模力盒 · AI 模板库 — 好模板，让创作快人一步</title>
+<meta name="description" content="PPT、Word、Excel、网站、邮件、设计模板，一站浏览、智能推荐、即取即用。">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/extra.css">
+</head>
+<body>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a>
+    <nav class="main-nav">
+      <a href="#categories">模板分类</a><a href="#library">模板库</a><a href="#ai">AI 找模板</a><a href="#about">关于我们</a>
+    </nav>
+    <div class="header-actions">
+      <label class="header-search"><span aria-hidden="true">⌕</span><input type="search" id="headerSearch" placeholder="搜索模板…" aria-label="搜索模板"></label>
+      <button class="btn btn-ghost btn-sm" id="uploadBtn" type="button">↑ 上传模板</button>
+      <a class="btn btn-primary btn-sm" id="loginLink" href="auth.html">登录 / 注册</a>
+      <a class="user-chip" id="userChip" href="account.html" hidden></a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="ai">
+  <div class="hero-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow">✦ AI 智能模板库 · 注册即可上传下载</span>
+      <h1>好模板，让创作<br><em>快人一步</em></h1>
+      <p class="hero-desc">汇报、简历、报表、官网、邮件、海报…… 说出你的需求，AI 帮你从模板库里精准挑出最合适的那一套。登录后即可上传与下载，上传内容经审核后展示。</p>
+      <form class="ai-search" id="aiForm" autocomplete="off">
+        <span class="ai-spark" aria-hidden="true">✦</span>
+        <input type="text" id="aiInput" placeholder="试试：我要做一份年终总结 PPT" aria-label="描述你想要的模板">
+        <button type="submit" class="btn btn-primary">AI 帮我找 <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="ai-examples">
+        <span>热门需求：</span>
+        <button type="button" class="chip chip-example" data-q="简历">简历</button>
+        <button type="button" class="chip chip-example" data-q="财务报表">财务报表</button>
+        <button type="button" class="chip chip-example" data-q="发布会">发布会 PPT</button>
+        <button type="button" class="chip chip-example" data-q="官网">官网模板</button>
+      </div>
+      <div class="hero-stats">
+        <div><strong id="statTemplates">48</strong><span>套已上架模板</span></div>
+        <div><strong id="statCats">6</strong><span>大分类</span></div>
+        <div><strong id="statDownloads">0</strong><span>次下载</span></div>
+        <div><strong id="statUsers">—</strong><span>注册用户</span></div>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="float-card fc-ppt"><div class="fc-bar"><i></i><i></i><i></i></div><div class="fc-slide"><span class="fc-title"></span><span class="fc-line w80"></span><span class="fc-line w60"></span><span class="fc-block"></span></div><div class="fc-tag">📊 PPT 模板</div></div>
+      <div class="float-card fc-word"><div class="fc-doc-head"><span class="fc-avatar"></span><span class="fc-line w50"></span></div><span class="fc-line w90"></span><span class="fc-line w70"></span><span class="fc-line w80"></span><div class="fc-tag">📄 简历模板</div></div>
+      <div class="float-card fc-web"><div class="fc-bar"><i></i><i></i><i></i></div><div class="fc-web-hero"><span class="fc-line w60"></span><span class="fc-pill"></span></div><div class="fc-web-grid"><b></b><b></b><b></b></div><div class="fc-tag">🌐 网站模板</div></div>
+      <div class="float-badge">✦ AI 推荐</div>
+    </div>
+  </div>
+</section>
+
+<section class="section categories" id="categories">
+  <div class="wrap">
+    <div class="section-head"><div><span class="kicker">CATEGORIES</span><h2>按类型找模板</h2><p>六大类目，覆盖工作与生活的常见场景</p></div></div>
+    <div class="category-grid" id="categoryGrid"></div>
+  </div>
+</section>
+
+<section class="section ai-result-wrap" id="aiResultWrap" hidden>
+  <div class="wrap"><div class="ai-result-head"><h2>✦ AI 为你找到 <span id="aiCount">0</span> 套相关模板</h2><button class="btn btn-ghost btn-sm" id="clearAi" type="button">清除结果 ×</button></div><div class="template-grid" id="aiGrid"></div></div>
+</section>
+
+<section class="section library" id="library">
+  <div class="wrap">
+    <div class="section-head library-head">
+      <div><span class="kicker">TEMPLATE LIBRARY</span><h2 id="libraryTitle">全部模板</h2><p id="librarySub">挑一套顺手的，把时间留给真正重要的事</p></div>
+      <div class="library-tools"><label class="sort-select">排序<select id="sortSelect"><option value="new">最新上架</option><option value="hot">最受欢迎</option><option value="name">按名称</option></select></label></div>
+    </div>
+    <div class="filter-bar"><button class="filter-chip is-active" data-cat="" type="button">全部</button><span class="filter-divider"></span><div class="sub-filter" id="subFilter"><button class="filter-chip is-active" data-sub="" type="button">全部场景</button></div></div>
+    <div class="result-line"><span id="resultCount">0</span> 套模板 <span class="dot">·</span> 登录后即可下载</div>
+    <div class="template-grid" id="templateGrid"></div>
+    <div class="empty-state" id="emptyState" hidden><div class="empty-icon">🔍</div><h3>没有找到匹配的模板</h3><p>换个关键词试试，或者 <button class="link-btn" id="resetFilter" type="button">重置筛选</button></p></div>
+  </div>
+</section>
+
+<section class="section about" id="about">
+  <div class="wrap about-inner">
+    <div><span class="kicker">WHY 模力盒</span><h2>省下的时间，<br>去做更有价值的事</h2></div>
+    <div class="feature-grid">
+      <div class="feature"><span>⚡</span><h3>即取即用</h3><p>所有模板结构清晰、标注完整，下载后替换内容就能交付。</p></div>
+      <div class="feature"><span>✦</span><h3>AI 精准推荐</h3><p>用大白话描述需求，不用记分类名，AI 直接挑出合适的模板。</p></div>
+      <div class="feature"><span>🛡️</span><h3>审核后展示</h3><p>用户上传的模板先进入待审核队列，管理员审核通过后才会公开。</p></div>
+      <div class="feature"><span>🔄</span><h3>持续更新</h3><p>每周上新，紧跟流行设计与办公软件版本，不过时。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer"><div class="wrap footer-inner">
+  <div><a class="brand" href="#top"><span class="brand-mark">M</span><span class="brand-name">模力盒<span class="brand-dot">.</span></span></a><p>好模板，让创作快人一步。</p></div>
+  <div class="footer-links"><a href="#categories">模板分类</a><a href="#library">全部模板</a><a href="#ai">AI 找模板</a><a href="admin.html">管理后台</a></div>
+  <p class="copyright">© 2026 模力盒 · 本地全栈演示</p>
+</div></footer>
+
+<!-- 预览 -->
+<div class="modal" id="previewModal" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <button class="modal-close" type="button" data-close aria-label="关闭">×</button>
+    <div class="modal-preview" id="modalPreview"></div>
+    <div class="modal-info">
+      <span class="modal-cat" id="modalCat"></span><h3 id="previewTitle"></h3><p id="modalDesc"></p>
+      <div class="modal-tags" id="modalTags"></div>
+      <dl class="modal-meta">
+        <div><dt>文件格式</dt><dd id="modalFormats"></dd></div>
+        <div><dt>下载次数</dt><dd id="modalDownloads"></dd></div>
+        <div><dt>上传者</dt><dd id="modalUploader"></dd></div>
+        <div><dt>授权</dt><dd>登录后可下载</dd></div>
+      </dl>
+      <div class="modal-actions"><button class="btn btn-primary" id="downloadBtn" type="button">登录并下载 ↓</button><button class="btn btn-ghost" id="modalProfileBtn" type="button">查看上传者</button></div>
+      <p class="modal-note" id="modalNote"></p>
+    </div>
+  </div>
+</div>
+
+<!-- 上传 -->
+<div class="modal" id="uploadModal" hidden>
+  <div class="modal-mask" data-close-upload></div>
+  <div class="modal-panel upload-panel" role="dialog" aria-modal="true">
+    <button class="modal-close" type="button" data-close-upload aria-label="关闭">×</button>
+    <div class="upload-head"><h3>上传模板</h3><p>提交后进入审核队列，通过后才会出现在模板库</p></div>
+    <form id="uploadForm" class="upload-form">
+      <label>模板名称 <input name="title" required maxlength="60" placeholder="例如：极简项目汇报 PPT"></label>
+      <div class="form-row">
+        <label>分类 <select name="cat" id="uploadCat" required></select></label>
+        <label>场景 <select name="sub" id="uploadSub" required></select></label>
+      </div>
+      <label>简介 <textarea name="description" rows="3" maxlength="200" placeholder="简单描述模板适用场景与特点"></textarea></label>
+      <label>标签（逗号分隔） <input name="tags" placeholder="商务, 极简, 可编辑"></label>
+      <label class="drop-zone" id="dropZone"><input type="file" name="file" id="uploadFile" required hidden><span class="drop-icon">↑</span><strong id="dropText">点击选择文件，或拖到此处</strong><small>支持 PPTX / DOCX / XLSX / ZIP / PDF / 图片等，最大 50MB</small></label>
+      <div class="upload-footer"><span class="form-msg" id="uploadMsg"></span><button class="btn btn-primary" type="submit">提交审核</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="js/common.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
